@@ -247,10 +247,10 @@ hateful-meme-detection/
 │   ├── API.md
 │   └── DEPLOYMENT.md
 │
-└── 📂 .github/                # GitHub configurations
-    ├── workflows/
-    │   └── ci.yml             # CI/CD pipeline
-    └── ISSUE_TEMPLATE/
+└─  📂 workflows/
+|   │   └── ci.yml           # CI/CD pipeline
+|
+ └── 📂ISSUE_TEMPLATE/
 ```
 
 ---
