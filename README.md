@@ -1,11 +1,11 @@
-# 🛡️ Multimodal Hateful Meme Detection
+#  Multimodal Hateful Meme Detection
 
 > **AI content moderation system** using CLIP with Cross-Attention Fusion for detecting hateful content in multimodal memes. Includes real-time Discord bot deployment.
 
 
 ---
 
-## 🎯 Problem Statement
+## Problem Statement
 
 Hateful memes represent a unique challenge in content moderation: **meaning emerges from the interaction between images and text**, not from either modality alone. A benign image becomes offensive when paired with certain text, and innocuous text transforms into hate speech with specific imagery.
 
@@ -13,21 +13,21 @@ Traditional content moderation systems analyze images and text separately, missi
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔄 **Cross-Attention Fusion** | Bidirectional attention mechanism enabling joint image-text reasoning |
-| ⚡ **Efficient Transfer Learning** | Only 3.8% trainable parameters (5.9M of 157M total) |
-| 🤖 **Production Discord Bot** | Real-time content moderation with configurable thresholds |
-| 📊 **Comprehensive Evaluation** | ROC-AUC, PR curves, confusion matrices, error analysis |
-| 🛡️ **Bias Auditing** | Built-in fairness evaluation and mitigation strategies |
-| 📈 **Focal Loss** | Handles class imbalance (64% vs 36%) effectively |
-| 🐳 **Docker Ready** | Containerized deployment for production environments |
+| **Cross-Attention Fusion** | Bidirectional attention mechanism enabling joint image-text reasoning |
+|  **Efficient Transfer Learning** | Only 3.8% trainable parameters (5.9M of 157M total) |
+|  **Production Discord Bot** | Real-time content moderation with configurable thresholds |
+|  **Comprehensive Evaluation** | ROC-AUC, PR curves, confusion matrices, error analysis |
+| **Bias Auditing** | Built-in fairness evaluation and mitigation strategies |
+|  **Focal Loss** | Handles class imbalance (64% vs 36%) effectively |
+|  **Docker Ready** | Containerized deployment for production environments |
 
 ---
 
-## 🏗️ Architecture
+##  Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -90,7 +90,7 @@ Traditional content moderation systems analyze images and text separately, missi
 
 ---
 
-## 📊 Performance
+## Performance
 
 ### Metrics on Validation Set
 
@@ -116,7 +116,7 @@ Traditional content moderation systems analyze images and text separately, missi
 
 ---
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### Prerequisites
 
@@ -195,7 +195,7 @@ python discord_bot/bot.py
 
 
 
-## 🤖 Discord Bot
+##  Discord Bot
 
 The trained model is deployed as a Discord bot for real-time content moderation.
 
@@ -226,7 +226,7 @@ The trained model is deployed as a Discord bot for real-time content moderation.
 
 ---
 
-## 📈 Training Details
+## Training Details
 
 ### Hyperparameters
 
@@ -256,7 +256,7 @@ The trained model is deployed as a Discord bot for real-time content moderation.
 
 ---
 
-## 🛡️ Ethical Considerations
+##  Ethical Considerations
 
 ### Bias Analysis
 
@@ -277,7 +277,7 @@ We conducted comprehensive bias auditing identifying potential sources:
 
 ### Responsible Deployment
 
-> ⚠️ **Important**: This model achieves 61% accuracy and should be used as an **assistive tool with human oversight**, not as a standalone content moderation system.
+>  **Important**: This model achieves 61% accuracy and should be used as an **assistive tool with human oversight**, not as a standalone content moderation system.
 
 **Recommended practices:**
 - Always provide appeal mechanisms
@@ -287,7 +287,7 @@ We conducted comprehensive bias auditing identifying potential sources:
 
 ---
 
-## 📚 Dataset
+##  Dataset
 
 This project uses the **Facebook AI Hateful Memes Challenge** dataset.
 
@@ -307,7 +307,7 @@ See [data/README.md](data/README.md) for detailed instructions.
 
 ---
 
-## 🔧 API Reference
+## API Reference
 
 ### HatefulMemeClassifier
 
@@ -340,7 +340,7 @@ See [docs/API.md](docs/API.md) for complete API documentation.
 
 ---
 
-## 🐳 Docker Deployment
+## Docker Deployment
 
 ```bash
 # Build image
@@ -355,7 +355,7 @@ docker-compose up discord-bot
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run all tests
@@ -370,20 +370,6 @@ pytest tests/test_model.py -v
 
 ---
 
-## 📖 Citation
-
-If you use this work in your research, please cite:
-
-```bibtex
-@software{hateful_meme_detection_2025,
-  author = {Anilkumar, Bhrigu and Chandrasekar, Deepa and Kaur, Arshpreet},
-  title = {Multimodal Hateful Meme Detection using CLIP with Cross-Attention Fusion},
-  year = {2025},
-  publisher = {GitHub},
-  url = {https://github.com/bhriguuu/hateful-meme-detection}
-}
-```
-
 ### References
 
 1. Kiela, D., et al. (2020). "The Hateful Memes Challenge: Detecting Hate Speech in Multimodal Memes." *NeurIPS*.
@@ -392,7 +378,7 @@ If you use this work in your research, please cite:
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
@@ -404,14 +390,14 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ---
 
-## 📝 License
+## License
 
 This project is licensed under the MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Facebook AI for the Hateful Memes Challenge dataset
 - OpenAI for the CLIP model
