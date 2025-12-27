@@ -1,16 +1,7 @@
 # 🛡️ Multimodal Hateful Meme Detection
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 2.0+](https://img.shields.io/badge/PyTorch-2.0+-ee4c2c.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Hugging Face](https://img.shields.io/badge/🤗-Transformers-orange)](https://huggingface.co/transformers/)
-
 > **AI content moderation system** using CLIP with Cross-Attention Fusion for detecting hateful content in multimodal memes. Includes real-time Discord bot deployment.
 
-<p align="center">
-  <img src="docs/images/architecture.png" alt="Architecture" width="700"/>
-</p>
 
 ---
 
