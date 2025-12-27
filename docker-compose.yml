@@ -1,0 +1,117 @@
+# ============================================================================
+# Hateful Meme Detection - Docker Compose
+# ============================================================================
+# Usage:
+#   docker-compose up discord-bot    # Run Discord bot
+#   docker-compose up api            # Run API server
+#   docker-compose up --build        # Rebuild and run all
+# ============================================================================
+
+version: '3.8'
+
+services:
+  # ==========================================================================
+  # Discord Bot Service
+  # ==========================================================================
+  discord-bot:
+    build:
+      context: .
+      target: production
+    container_name: hateful-meme-bot
+    restart: unless-stopped
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - MONITORED_CHANNEL_ID=${MONITORED_CHANNEL_ID:-}
+      - MODEL_PATH=/app/models/best_model.pth
+      - OPTIMAL_THRESHOLD=${OPTIMAL_THRESHOLD:-0.4274}
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+    command: python discord_bot/bot.py
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # ==========================================================================
+  # Discord Bot with GPU
+  # ==========================================================================
+  discord-bot-gpu:
+    build:
+      context: .
+      target: gpu
+    container_name: hateful-meme-bot-gpu
+    restart: unless-stopped
+    environment:
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - MONITORED_CHANNEL_ID=${MONITORED_CHANNEL_ID:-}
+      - MODEL_PATH=/app/models/best_model.pth
+      - DEVICE=cuda
+    volumes:
+      - ./models:/app/models:ro
+      - ./logs:/app/logs
+    command: python3 discord_bot/bot.py
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # ==========================================================================
+  # Development Environment
+  # ==========================================================================
+  dev:
+    build:
+      context: .
+      target: development
+    container_name: hateful-meme-dev
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+    environment:
+      - JUPYTER_TOKEN=devtoken
+    command: jupyter notebook --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+
+  # ==========================================================================
+  # Training Service
+  # ==========================================================================
+  train:
+    build:
+      context: .
+      target: gpu
+    container_name: hateful-meme-train
+    volumes:
+      - ./data:/app/data:ro
+      - ./models:/app/models
+      - ./outputs:/app/outputs
+    environment:
+      - DATA_DIR=/app/data/hateful_memes
+      - OUTPUT_DIR=/app/outputs
+    command: >
+      python3 src/train.py
+      --data_dir /app/data/hateful_memes
+      --output_dir /app/outputs
+      --epochs 10
+      --batch_size 32
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  model-data:
+  log-data:
