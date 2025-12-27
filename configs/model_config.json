@@ -1,0 +1,31 @@
+{
+  "model": {
+    "clip_model_name": "openai/clip-vit-base-patch32",
+    "hidden_dim": 512,
+    "num_heads": 8,
+    "dropout": 0.3,
+    "freeze_clip": true
+  },
+  "architecture": {
+    "description": "CLIP with Cross-Attention Fusion",
+    "components": {
+      "encoder": "CLIP ViT-B/32 (frozen)",
+      "fusion": "Cross-Attention + Concatenation (ensemble)",
+      "classifier": "3-layer MLP with Layer Normalization"
+    },
+    "parameters": {
+      "total": 157192450,
+      "trainable": 5915137,
+      "frozen": 151277313,
+      "trainable_percentage": 3.76
+    }
+  },
+  "input": {
+    "image_size": 224,
+    "max_text_length": 77,
+    "normalization": {
+      "mean": [0.48145466, 0.4578275, 0.40821073],
+      "std": [0.26862954, 0.26130258, 0.27577711]
+    }
+  }
+}

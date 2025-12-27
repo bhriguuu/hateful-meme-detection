@@ -1,0 +1,47 @@
+{
+  "training": {
+    "epochs": 10,
+    "batch_size": 32,
+    "learning_rate": 0.0002,
+    "weight_decay": 0.01,
+    "warmup_ratio": 0.1,
+    "gradient_clip": 1.0,
+    "early_stopping_patience": 3
+  },
+  "optimizer": {
+    "name": "AdamW",
+    "betas": [0.9, 0.999],
+    "eps": 1e-8
+  },
+  "scheduler": {
+    "name": "OneCycleLR",
+    "pct_start": 0.1,
+    "anneal_strategy": "cos",
+    "div_factor": 25,
+    "final_div_factor": 1000
+  },
+  "loss": {
+    "name": "FocalLoss",
+    "alpha": 0.6412,
+    "gamma": 2.0,
+    "note": "Alpha calculated from class distribution (64.1% not hateful, 35.9% hateful)"
+  },
+  "augmentation": {
+    "train": {
+      "resize": [224, 224],
+      "horizontal_flip": 0.5,
+      "brightness_contrast": 0.5,
+      "hue_saturation": 0.3,
+      "gauss_noise": 0.2,
+      "gauss_blur": 0.2
+    },
+    "val": {
+      "resize": [224, 224]
+    }
+  },
+  "data": {
+    "num_workers": 4,
+    "pin_memory": true,
+    "drop_last": true
+  }
+}

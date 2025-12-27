@@ -1,0 +1,46 @@
+{
+  "inference": {
+    "optimal_threshold": 0.4274,
+    "thresholds": {
+      "safe": 0.37,
+      "warning": 0.42,
+      "harmful": 0.4274
+    },
+    "actions": {
+      "below_safe": {
+        "action": "approve",
+        "reaction": "✅",
+        "description": "Content is safe"
+      },
+      "safe_to_warning": {
+        "action": "warn",
+        "reaction": "⚠️",
+        "description": "Content flagged for review"
+      },
+      "above_harmful": {
+        "action": "remove",
+        "reaction": "🛑",
+        "description": "Content removed automatically"
+      }
+    }
+  },
+  "preprocessing": {
+    "image_size": 224,
+    "max_text_length": 77,
+    "normalization": {
+      "mean": [0.48145466, 0.4578275, 0.40821073],
+      "std": [0.26862954, 0.26130258, 0.27577711]
+    }
+  },
+  "performance": {
+    "val_accuracy": 0.61,
+    "val_f1": 0.6372,
+    "val_auc": 0.6761,
+    "val_precision": 0.6503,
+    "val_recall": 0.476
+  },
+  "batch_inference": {
+    "max_batch_size": 16,
+    "timeout_seconds": 30
+  }
+}
