@@ -193,67 +193,7 @@ python discord_bot/bot.py
 
 ---
 
-## 📁 Project Structure
 
-```
-hateful-meme-detection/
-│
-├── 📄 README.md                 # This file
-├── 📄 LICENSE                   # MIT License
-├── 📄 requirements.txt          # Python dependencies
-├── 📄 setup.py                  # Package installation
-├── 📄 .gitignore               # Git ignore rules
-├── 📄 .env.example             # Environment variables template
-├── 📄 Dockerfile               # Container deployment
-├── 📄 docker-compose.yml       # Multi-container setup
-│
-├── 📂 src/                     # Source code
-│   ├── __init__.py
-│   ├── model.py               # Model architecture
-│   ├── dataset.py             # Data loading & augmentation
-│   ├── train.py               # Training script
-│   ├── inference.py           # Inference utilities
-│   ├── losses.py              # Focal Loss implementation
-│   └── utils.py               # Helper functions
-│
-├── 📂 discord_bot/            # Discord bot
-│   ├── bot.py                 # Main bot script
-│   ├── config.py              # Bot configuration
-│   └── README.md              # Bot setup guide
-│
-├── 📂 configs/                # Configuration files
-│   ├── model_config.json      # Model hyperparameters
-│   ├── training_config.json   # Training settings
-│   └── inference_config.json  # Inference settings
-│
-├── 📂 notebooks/              # Jupyter notebooks
-│   ├── 01_data_exploration.ipynb
-│   ├── 02_training.ipynb
-│   └── 03_evaluation.ipynb
-│
-├── 📂 tests/                  # Unit tests
-│   ├── test_model.py
-│   ├── test_dataset.py
-│   └── test_inference.py
-│
-├── 📂 data/                   # Dataset (not tracked)
-│   └── README.md              # Data download instructions
-│
-├── 📂 models/                 # Saved models (not tracked)
-│   └── .gitkeep
-│
-├── 📂 docs/                   # Documentation
-│   ├── images/
-│   ├── API.md
-│   └── DEPLOYMENT.md
-│
-└─  📂 workflows/
-|   │   └── ci.yml           # CI/CD pipeline
-|
- └── 📂ISSUE_TEMPLATE/
-```
-
----
 
 ## 🤖 Discord Bot
 
@@ -470,13 +410,6 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) for deta
 
 ---
 
-## 👥 Authors
-
-- **Bhrigu Anilkumar** - [GitHub](https://github.com/bhriguuu)
-- **Deepa Chandrasekar** - [GitHub](https://github.com/deepac22)
-- **Arshpreet Kaur** - [GitHub](https://github.com/ak-arshpreetkaur)
-
----
 
 ## 🙏 Acknowledgments
 
