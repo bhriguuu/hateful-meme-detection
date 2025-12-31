@@ -1,0 +1,58 @@
+# Model Weights
+
+The trained model (~600MB) is hosted externally due to GitHub's file size limits.
+
+## Quick Download
+
+```bash
+# From Hugging Face (recommended)
+python scripts/download_weights.py
+
+# From Google Drive (backup)
+python scripts/download_weights.py --source gdrive
+```
+
+## Manual Download
+
+### Option 1: Hugging Face Hub
+```bash
+pip install huggingface_hub
+huggingface-cli download bhriguuu/hateful-meme-detection best_model.pth --local-dir ./models
+```
+
+### Option 2: Google Drive
+```bash
+pip install gdown
+gdown https://drive.google.com/uc?id=1as0sRqAlqCbxybC1cl7QQ-JOzbm4byvl -O best_model.pth
+```
+
+### Option 3: Direct Links
+- [Hugging Face](https://huggingface.co/bhriguuu/hateful-meme-detection)
+- [Google Drive](https://drive.google.com/file/d/1as0sRqAlqCbxybC1cl7QQ-JOzbm4byvl/view)
+
+## Model Info
+
+| Property | Value |
+|----------|-------|
+| Filename | `best_model.pth` |
+| Size | ~600 MB |
+| Format | PyTorch state dict |
+| Architecture | CLIP ViT-B/32 + Cross-Attention |
+| Accuracy | 61.0% |
+| F1 Score | 0.6372 |
+
+## After Download
+
+Verify the model is in place:
+```bash
+ls models/
+# Should show: best_model.pth
+```
+
+Then run inference:
+```python
+from src.inference import HatefulMemePredictor
+
+predictor = HatefulMemePredictor("models/best_model.pth")
+result = predictor.predict("path/to/meme.jpg", "meme text")
+```
