@@ -203,7 +203,10 @@ def load_model(model_path: str, device: torch.device):
         })
         
         model = HatefulMemeClassifier(**model_config)
-        model.load_state_dict(checkpoint['model_state_dict'])
+       if 'model_state_dict' in checkpoint:
+    model.load_state_dict(checkpoint['model_state_dict'])
+else:
+    model.load_state_dict(checkpoint)
         model = model.to(device)
         model.eval()
         
