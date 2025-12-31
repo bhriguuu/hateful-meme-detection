@@ -194,13 +194,8 @@ def load_model(model_path: str, device: torch.device):
     try:
         checkpoint = torch.load(model_path, map_location=device, weights_only=False)
         
-        model_config = checkpoint.get('model_config', {
-            'clip_model_name': 'openai/clip-vit-base-patch32',
-            'hidden_dim': 512,
-            'num_heads': 8,
-            'dropout': 0.3,
-            'freeze_clip': True
-        }) if isinstance(checkpoint, dict) and 'model_config' in checkpoint else {
+        # Default config
+        default_config = {
             'clip_model_name': 'openai/clip-vit-base-patch32',
             'hidden_dim': 512,
             'num_heads': 8,
@@ -208,8 +203,15 @@ def load_model(model_path: str, device: torch.device):
             'freeze_clip': True
         }
         
+        # Get model config if available
+        if isinstance(checkpoint, dict) and 'model_config' in checkpoint:
+            model_config = checkpoint.get('model_config', default_config)
+        else:
+            model_config = default_config
+        
         model = HatefulMemeClassifier(**model_config)
         
+        # Load state dict - handle both formats
         if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
             model.load_state_dict(checkpoint['model_state_dict'])
         else:
