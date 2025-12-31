@@ -200,29 +200,26 @@ def load_model(model_path: str, device: torch.device):
             'num_heads': 8,
             'dropout': 0.3,
             'freeze_clip': True
-        })
+        }) if isinstance(checkpoint, dict) and 'model_config' in checkpoint else {
+            'clip_model_name': 'openai/clip-vit-base-patch32',
+            'hidden_dim': 512,
+            'num_heads': 8,
+            'dropout': 0.3,
+            'freeze_clip': True
+        }
         
         model = HatefulMemeClassifier(**model_config)
-       if 'model_state_dict' in checkpoint:
-    model.load_state_dict(checkpoint['model_state_dict'])
-else:
-    model.load_state_dict(checkpoint)
+        
+        if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
+            model.load_state_dict(checkpoint['model_state_dict'])
+        else:
+            model.load_state_dict(checkpoint)
+        
         model = model.to(device)
         model.eval()
         
-        # Update threshold if available
-        if 'inference' in checkpoint:
-            Config.OPTIMAL_THRESHOLD = checkpoint['inference'].get(
-                'optimal_threshold', Config.OPTIMAL_THRESHOLD
-            )
-        
         print(f"✅ Model loaded successfully")
         print(f"   Threshold: {Config.OPTIMAL_THRESHOLD:.4f}")
-        
-        if 'validation_performance' in checkpoint:
-            perf = checkpoint['validation_performance']
-            print(f"   Val Accuracy: {perf.get('val_accuracy', 0):.2%}")
-            print(f"   Val F1: {perf.get('val_f1', 0):.4f}")
         
         return model
         
