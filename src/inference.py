@@ -137,9 +137,12 @@ class HatefulMemePredictor:
             augmented = self.transform(image=image_np)
             image_np = augmented['image']
         else:
-            # Basic resize without albumentations
+            # Basic resize + CLIP normalization without albumentations
             image = Image.fromarray(image_np).resize((224, 224))
-            image_np = np.array(image) / 255.0
+            image_np = np.array(image).astype(np.float32) / 255.0
+            mean = np.array([0.48145466, 0.4578275, 0.40821073], dtype=np.float32)
+            std = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
+            image_np = (image_np - mean) / std
         
         # Convert to tensor
         image_tensor = torch.from_numpy(image_np).permute(2, 0, 1).float()

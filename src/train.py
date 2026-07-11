@@ -16,10 +16,12 @@ Usage:
 import argparse
 import json
 import os
+import random
 import time
 from pathlib import Path
 from typing import Dict, Optional, Tuple
 
+import numpy as np
 import torch
 import torch.nn as nn
 from torch.optim import AdamW
@@ -35,6 +37,30 @@ from transformers import CLIPProcessor
 from model import HatefulMemeClassifier, create_model
 from dataset import create_dataloaders, load_jsonl
 from losses import FocalLoss, get_loss_function
+
+
+def set_seed(seed: int):
+    """Make runs reproducible."""
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)
+
+
+def find_best_threshold(labels, probs) -> Tuple[float, float]:
+    """
+    Sweep decision thresholds on validation probabilities and return
+    the threshold that maximizes accuracy (dev set is 50/50 balanced).
+    """
+    labels = np.asarray(labels)
+    probs = np.asarray(probs)
+    best_threshold, best_acc = 0.5, 0.0
+    for threshold in np.arange(0.05, 0.951, 0.005):
+        acc = accuracy_score(labels, (probs > threshold).astype(float))
+        if acc > best_acc:
+            best_acc = acc
+            best_threshold = float(threshold)
+    return best_threshold, best_acc
 
 
 # ============================================================================
@@ -214,6 +240,8 @@ def train(args):
     print("HATEFUL MEME DETECTION - TRAINING")
     print("=" * 70)
     
+    set_seed(args.seed)
+
     # Device setup
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"\nDevice: {device}")
@@ -227,8 +255,9 @@ def train(args):
     model_dir.mkdir(parents=True, exist_ok=True)
     
     # Load processor and create dataloaders
+    # (must match the CLIP variant used by the model, e.g. ViT-L/14)
     print("\nLoading data...")
-    processor = CLIPProcessor.from_pretrained("openai/clip-vit-base-patch32")
+    processor = CLIPProcessor.from_pretrained(args.clip_model)
     
     dataloaders = create_dataloaders(
         data_path=args.data_dir,
@@ -250,7 +279,9 @@ def train(args):
         'hidden_dim': args.hidden_dim,
         'num_heads': args.num_heads,
         'dropout': args.dropout,
-        'freeze_clip': True
+        'freeze_clip': True,
+        'unfreeze_layers': args.unfreeze_layers,
+        'use_token_fusion': not args.pooled_fusion
     }
     
     if args.resume:
@@ -291,21 +322,34 @@ def train(args):
     criterion = FocalLoss(alpha=alpha, gamma=args.focal_gamma)
     print(f"\nLoss: Focal Loss (alpha={alpha:.4f}, gamma={args.focal_gamma})")
     
-    # Optimizer
+    # Optimizer with discriminative learning rates:
+    # unfrozen CLIP layers need a much smaller LR than the fresh head,
+    # otherwise fine-tuning destroys the pretrained representations.
+    head_params = [p for n, p in model.named_parameters()
+                   if p.requires_grad and not n.startswith('clip.')]
+    clip_params = [p for n, p in model.named_parameters()
+                   if p.requires_grad and n.startswith('clip.')]
+
+    param_groups = [{'params': head_params, 'lr': args.learning_rate}]
+    max_lrs = [args.learning_rate]
+    if clip_params:
+        param_groups.append({'params': clip_params, 'lr': args.backbone_lr})
+        max_lrs.append(args.backbone_lr)
+        print(f"Fine-tuning {len(clip_params)} CLIP tensors at lr={args.backbone_lr}")
+
     optimizer = AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
-        lr=args.learning_rate,
+        param_groups,
         weight_decay=args.weight_decay,
         betas=(0.9, 0.999)
     )
-    
+
     # Scheduler
     total_steps = len(train_loader) * args.epochs
     warmup_steps = int(total_steps * args.warmup_ratio)
-    
+
     scheduler = OneCycleLR(
         optimizer,
-        max_lr=args.learning_rate,
+        max_lr=max_lrs,
         total_steps=total_steps,
         pct_start=args.warmup_ratio,
         anneal_strategy='cos',
@@ -350,7 +394,9 @@ def train(args):
         )
         
         # Validate
-        val_metrics, _, _, _ = validate(model, val_loader, criterion, device)
+        val_metrics, val_labels, _, val_probs = validate(
+            model, val_loader, criterion, device
+        )
         
         # Update history
         history['train_loss'].append(train_metrics['loss'])
@@ -388,22 +434,33 @@ def train(args):
         }
         torch.save(checkpoint, model_dir / f'checkpoint_epoch{epoch+1}.pth')
         
-        # Check for best model
-        current_score = val_metrics['f1']
+        # Check for best model (AUC is threshold-free and more stable
+        # than F1 at a fixed 0.5 cutoff)
+        current_score = val_metrics['auc']
         if current_score > best_f1:
             best_f1 = current_score
             best_model_state = model.state_dict().copy()
             patience_counter = 0
-            
+
+            # Tune the decision threshold on validation probabilities
+            best_threshold, best_thresh_acc = find_best_threshold(
+                val_labels, val_probs
+            )
+
             # Save best model
             torch.save({
                 'model_state_dict': best_model_state,
                 'model_config': model_config,
                 'val_metrics': val_metrics,
-                'epoch': epoch + 1
+                'epoch': epoch + 1,
+                'inference': {
+                    'optimal_threshold': best_threshold,
+                    'accuracy_at_threshold': best_thresh_acc
+                }
             }, model_dir / 'best_model.pth')
-            
-            print(f"\n >> NEW BEST MODEL << F1: {best_f1:.4f}")
+
+            print(f"\n >> NEW BEST MODEL << AUC: {best_f1:.4f} | "
+                  f"Acc@{best_threshold:.3f}: {best_thresh_acc:.4f}")
         else:
             patience_counter += 1
             print(f"\n No improvement ({patience_counter}/{args.patience})")
@@ -434,7 +491,8 @@ def train(args):
         },
         'validation_performance': {
             'val_accuracy': history['val_acc'][-1],
-            'val_f1': best_f1,
+            'val_auc_best': best_f1,
+            'val_f1': history['val_f1'][-1],
             'val_auc': history['val_auc'][-1],
             'val_precision': history['val_precision'][-1],
             'val_recall': history['val_recall'][-1]
@@ -453,7 +511,7 @@ def train(args):
     print("TRAINING COMPLETE")
     print(f"{'=' * 70}")
     print(f"Total time: {total_time/60:.1f} minutes")
-    print(f"Best F1: {best_f1:.4f}")
+    print(f"Best val AUC: {best_f1:.4f}")
     print(f"Models saved to: {model_dir}")
 
 
@@ -482,7 +540,15 @@ def parse_args():
                         help='Number of attention heads')
     parser.add_argument('--dropout', type=float, default=0.3,
                         help='Dropout probability')
-    
+    parser.add_argument('--unfreeze_layers', type=int, default=4,
+                        help='Number of top CLIP transformer blocks to '
+                             'fine-tune in each encoder (0 = fully frozen)')
+    parser.add_argument('--backbone_lr', type=float, default=1e-5,
+                        help='Learning rate for unfrozen CLIP layers')
+    parser.add_argument('--pooled_fusion', action='store_true',
+                        help='Use legacy pooled-vector fusion instead of '
+                             'token-level cross-attention')
+
     # Training arguments
     parser.add_argument('--epochs', type=int, default=10,
                         help='Number of training epochs')
@@ -508,6 +574,8 @@ def parse_args():
                         help='Use automatic mixed precision')
     parser.add_argument('--resume', type=str, default=None,
                         help='Path to checkpoint to resume from')
+    parser.add_argument('--seed', type=int, default=42,
+                        help='Random seed for reproducibility')
     
     return parser.parse_args()
 

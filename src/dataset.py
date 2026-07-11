@@ -31,26 +31,23 @@ except ImportError:
 # ============================================================================
 
 def get_train_transform():
-    """Get training augmentation pipeline."""
+    """
+    Get training augmentation pipeline.
+
+    Kept deliberately light: memes carry text baked into the image, so
+    horizontal flips (which mirror that text) and heavy noise/blur/hue
+    shifts destroy the very signal CLIP reads and hurt accuracy.
+    """
     if not ALBUMENTATIONS_AVAILABLE:
         return None
-    
+
     return A.Compose([
         A.Resize(224, 224),
-        A.HorizontalFlip(p=0.5),
         A.RandomBrightnessContrast(
-            brightness_limit=0.2, 
-            contrast_limit=0.2, 
-            p=0.5
-        ),
-        A.HueSaturationValue(
-            hue_shift_limit=10,
-            sat_shift_limit=20,
-            val_shift_limit=10,
+            brightness_limit=0.1,
+            contrast_limit=0.1,
             p=0.3
         ),
-        A.GaussNoise(var_limit=(10, 50), p=0.2),
-        A.GaussianBlur(blur_limit=(3, 5), p=0.2),
         A.Normalize(
             mean=[0.48145466, 0.4578275, 0.40821073],  # CLIP normalization
             std=[0.26862954, 0.26130258, 0.27577711]
@@ -165,19 +162,27 @@ class HatefulMemesDataset(Dataset):
         
         try:
             image = Image.open(img_path).convert('RGB')
-            image_np = np.array(image)
-            
+
             # Apply augmentation
             if self.transform:
+                image_np = np.array(image)
                 augmented = self.transform(image=image_np)
                 image_np = augmented['image']
-            
+            else:
+                # Fallback without albumentations: resize + CLIP normalization
+                # (raw 0-255 tensors of arbitrary size would poison training)
+                image = image.resize((224, 224))
+                image_np = np.array(image).astype(np.float32) / 255.0
+                mean = np.array([0.48145466, 0.4578275, 0.40821073], dtype=np.float32)
+                std = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
+                image_np = (image_np - mean) / std
+
             # Convert to tensor format [C, H, W]
             if isinstance(image_np, np.ndarray):
                 image_tensor = torch.from_numpy(image_np).permute(2, 0, 1).float()
             else:
                 image_tensor = image_np
-                
+
         except Exception as e:
             # Fallback: create gray placeholder
             print(f"Warning: Could not load image {img_path}: {e}")
